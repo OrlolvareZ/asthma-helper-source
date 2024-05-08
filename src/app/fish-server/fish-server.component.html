@@ -1,0 +1,42 @@
+<mat-grid-list class="container" cols="3" rowHeight="2:1">
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+    <mat-grid-tile class="flex-center glass card" style="flex-direction: column;">
+
+        <h1 class="flex">Alimentador de peces</h1>
+        <button
+            class="flex sp"
+            mat-fab
+            extended
+            color="primary"
+            (click)="feed()"
+            [disabled]="isFeeding"
+        >
+            {{ !isFeeding ? 'Accionar alimentador' : 'Por favor espera' }}
+            @if (!isFeeding) {
+                <mat-icon>set_meal</mat-icon>
+            }
+            @else { 
+                <mat-progress-spinner
+                    color="accent sp-right"
+                    mode="indeterminate"
+                    diameter="20"   
+                ></mat-progress-spinner>
+            }
+        </button>
+        <p class="flex">
+            <b> Estado del alimentador:&nbsp;</b> {{ isFeeding ? 'Ocupado' : 'Disponible' }}
+            <mat-icon [color]="isFeeding ? 'accent' : 'primary'">
+                {{ isFeeding ? 'do_not_disturb_on_total_silence' : 'bolt' }}
+            </mat-icon>
+        </p>
+
+    </mat-grid-tile>
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+    <mat-grid-tile/>
+</mat-grid-list>
+  
