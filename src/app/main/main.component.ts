@@ -6,6 +6,11 @@ import { MatCard } from '@angular/material/card';
 import { MatGridList, MatGridListModule, MatGridTile } from '@angular/material/grid-list';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Component({
   selector: 'app-main',
@@ -22,6 +27,10 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     MatIcon,
     MatProgressSpinner, 
     HttpClientModule,
+    AngularFireModule,
+    AngularFireDatabaseModule,
+    AngularFirestoreModule,
+    AngularFireStorageModule,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss'
@@ -36,6 +45,12 @@ export class MainComponent {
         sync: `${this.particleUrlBase}/sync`,
     }
 
+    constructor(
+        private http: HttpClient,
+        private snack: MatSnackBar,
+        private db: AngularFirestore,
+    ) {}
+
     /**
      * Request example:
      * 
@@ -48,14 +63,9 @@ export class MainComponent {
         ).subscribe({
             next: (response) => {
 
-                console.log(response);
-
-                this.snack.open('¡Tu pececito está feliz! 🐠', 'Ok');
-                this.isFeeding = false;
             },
             error: (error) => {
-                this.snack.open('¡No se pudo alimentar a tu pez! 😢', 'Ok');
-                this.isFeeding = false;
+                
             }
         });
      */
