@@ -132,8 +132,10 @@ export class MainComponent implements OnInit {
                     this.addContact(contact);
                     
                     if (
-                    dbContacts
-                    && dbContacts.some((lc: any) => !contacts.includes(lc))
+                        dbContacts
+                        && (dbContacts.length !== contacts.length
+                            || dbContacts.some((lc: any) => !contacts.includes(lc))
+                    )
                 ) {
 
                     this.saveContactsToDb();
