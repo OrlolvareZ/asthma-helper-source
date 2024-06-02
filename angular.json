@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "OnOff": {
+    "INHLRMonitor": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -63,10 +63,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "OnOff:build:production"
+              "buildTarget": "INHLRMonitor:build:production"
             },
             "development": {
-              "buildTarget": "OnOff:build:development"
+              "buildTarget": "INHLRMonitor:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -74,7 +74,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "OnOff:build"
+            "buildTarget": "INHLRMonitor:build"
           }
         },
         "test": {
