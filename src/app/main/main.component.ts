@@ -92,7 +92,6 @@ export class MainComponent implements OnInit {
         
         /* this.requestParticle('allData').subscribe({
             next: (data: any) => {
-                console.log(data);
             },
             error: (error: any) => {
                 this.snack.open('Error fetching data from Particle', 'Dismiss');
@@ -123,12 +122,10 @@ export class MainComponent implements OnInit {
 
         const _dbContacts = await this.getContactsFromDb();
         const dbContacts = _dbContacts.empty ? [] : (_dbContacts.docs[0] as any).data().contacts;
-        console.log(dbContacts);
 
         this.requestParticle('getContacts').subscribe({
             next: (data: any) => {
 
-                console.log(data);
                 const contacts = JSON.parse(data.result);
 
                 dbContacts.forEach((contact: string) => {
