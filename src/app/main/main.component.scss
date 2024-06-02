@@ -24,7 +24,7 @@
     color: var(--primary-color);
 }
 
-mat-progress-bar {
-    margin-top: 10vh;
-    margin-bottom: 10vh;
+::ng-deep mat-progress-bar.dialog {
+    padding-top: 10vh;
+    padding-bottom: 10vh;
 }

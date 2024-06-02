@@ -18,7 +18,7 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { environment } from '../environment';
 import { DialogComponent } from '../dialog/dialog.component';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom, timeout } from 'rxjs';
 
 @Component({
     selector: 'app-main',
@@ -57,7 +57,7 @@ export class MainComponent implements OnInit {
     // App state
     isSyncing = true;
 
-    isLoadingContacts = true;
+    isLoadingContacts = false;
     wasAbleToFetchContacts = false;
     isUpdatingContacts = false;
 
@@ -90,15 +90,31 @@ export class MainComponent implements OnInit {
 
     ngOnInit(): void {
         
-        /* this.requestParticle('allData').subscribe({
-            next: (data: any) => {
-            },
-            error: (error: any) => {
-                this.snack.open('Error fetching data from Particle', 'Dismiss');
-            }
-        }); */
+        this.getDashboardData();
+        setInterval(() => {
+            this.getDashboardData();
+        }, 5000);
 
     }
+    
+    getDashboardData() {
+
+        this.requestParticle('allData').subscribe({
+            next: (data: any) => {
+                const parsedData = JSON.parse(data.result);
+                this.smokeValue = parsedData.smokeValue;
+                this.dustValue = parsedData.dustDensity;
+                this.isSyncing = false;
+            },
+            error: (error: any) => {
+                this.snack.open(
+                    '¡Se perdió la conexión con tu INHLR! Por favor revisa que ambos dispositivos estén conectados a internet.',
+                    'Ok'
+                );
+            }
+        });
+
+    };
 
     openEmailDialog(emailView: any) {
 
@@ -234,6 +250,8 @@ export class MainComponent implements OnInit {
 
     }
 
+    
+
     requestParticle(endpoint: string, params: string = '') {
 
         const request = params === '' ?
@@ -251,7 +269,7 @@ export class MainComponent implements OnInit {
             }
         );
 
-        return request;
+        return request.pipe(timeout(3000));
 
     }
 

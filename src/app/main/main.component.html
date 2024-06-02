@@ -19,7 +19,7 @@
     [class.flex-center]="isSyncing"
 >
 
-    @if (isSyncing || isUpdatingContacts) {
+    @if (isSyncing) {
     
         <div class="flex-center col appear">
             <mat-progress-spinner
@@ -27,20 +27,20 @@
                 mode="indeterminate"
             />
             <p class="flex">
-                @if (isSyncing) {
-                    Obteniendo datos de tu
-                    <span class="inhlr">&nbsp;INHLR</span>...
-                }
-                @else if (isUpdatingContacts) {
-                    Actualizando tus contactos
-                }
+                Obteniendo datos de tu
+                <span class="inhlr">&nbsp;INHLR</span>...
             </p>
         </div>
     
     }
     @else {
 
-
+        <p>
+            smoke: {{smokeValue}}
+        </p>
+        <p>
+            dust: {{dustValue}}
+        </p>
 
     }
 
@@ -55,7 +55,7 @@
     <div mat-dialog-content>
 
         @if (isLoadingContacts || isUpdatingContacts) {
-            <mat-progress-bar class="appear" mode="indeterminate"/>
+            <mat-progress-bar class="appear dialog" mode="indeterminate"/>
         }
         @else if (!wasAbleToFetchContacts) {
             <div class="center-container appear">
