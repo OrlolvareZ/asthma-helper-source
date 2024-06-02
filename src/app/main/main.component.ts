@@ -62,10 +62,11 @@ export class MainComponent {
             }
         ).subscribe({
             next: (response) => {
-
+                
             },
             error: (error) => {
-                
+                this.snack.open('¡No se pudo alimentar a tu pez! 😢', 'Ok');
+                this.isFeeding = false;
             }
         });
      */
