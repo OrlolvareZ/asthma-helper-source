@@ -67,10 +67,12 @@ h6 {
 }
 
 .row {
+    display: flex;
     flex-direction: row;
 }
 
 .col {
+    display: flex;
     flex-direction: column;
 }
 
@@ -123,4 +125,8 @@ h6 {
     to {
         opacity: 1;
     }
+}
+
+.hint {
+    opacity: 0.5;
 }

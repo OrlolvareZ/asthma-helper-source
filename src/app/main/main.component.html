@@ -19,7 +19,7 @@
     [class.flex-center]="isSyncing"
 >
 
-    @if (isSyncing) {
+    @if (isSyncing || isUpdatingContacts) {
     
         <div class="flex-center col appear">
             <mat-progress-spinner
@@ -27,7 +27,13 @@
                 mode="indeterminate"
             />
             <p class="flex">
-                Obteniendo datos de tu &nbsp;<span class="inhlr">INHLR</span>...
+                @if (isSyncing) {
+                    Obteniendo datos de tu
+                    <span class="inhlr">&nbsp;INHLR</span>...
+                }
+                @else if (isUpdatingContacts) {
+                    Actualizando tus contactos
+                }
             </p>
         </div>
     
@@ -48,14 +54,71 @@
 
     <div mat-dialog-content>
 
-        @if (isLoadingContacts) {
+        @if (isLoadingContacts || isUpdatingContacts) {
             <mat-progress-bar class="appear" mode="indeterminate"/>
         }
-        @else if (!contacts) {
+        @else if (!wasAbleToFetchContacts) {
             <div class="center-container appear">
                 <h1>Hubo un error al cargar tus contactos 😢</h1>
                 <p>Por favor asegúrate de que tu <span class="inhlr">INHLR</span> esté encendido</p>
             </div>
+        }
+        @else {
+
+            @if (contactsFormArray.length === 0) {
+                <p class="appear">
+                    ¡No tienes contactos guardados aún! 😯
+                </p>
+                <p class="hint">
+                    Agrega hasta 5 contactos de confianza para que puedan
+                    ser notificados en caso de emergencia
+                </p>
+            }
+
+            <form [formGroup]="fg" class="appear col">
+                @for (contact of contactsFormArray.controls; track contact){
+                    <div formArrayName="contacts" class="row appear">
+                        <mat-form-field class="flex">
+                            <mat-label>Contacto #{{ $index + 1 }}</mat-label>
+                            <input
+                                matInput
+                                formControlName="{{$index}}"
+                                type="email"
+                            />
+                            @if (contact.hasError('email')) {
+                                <mat-error>
+                                    Por favor ingresa un correo válido
+                                </mat-error>
+                            }
+                            @else if (contact.hasError('required')) {
+                                <mat-error>
+                                    Este campo es requerido
+                                </mat-error>
+                            }
+                        </mat-form-field>
+                        <button
+                            class="flex"
+                            mat-icon-button
+                            color="warn"
+                            (click)="removeContact($index)"
+                        >
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                }
+            </form>
+
+            @if (contactsFormArray.length < 5) {
+                <button
+                    mat-raised-button
+                    color="primary"
+                    (click)="addContact()"
+                >
+                    <mat-icon>add</mat-icon>
+                    <span>Agregar contacto</span>
+                </button>
+            }
+
         }
 
     </div>
@@ -66,15 +129,15 @@
         <button
             mat-button
             mat-dialog-close
-            [disabled]="isLoadingContacts"
+            [disabled]="isUpdatingContacts"
         >
             Volver
         </button>
         <button
             color="accent"
             mat-flat-button
-            [mat-dialog-close]="null"
-            [disabled]="isLoadingContacts || contactsChanged"
+            (click)="saveContacts()"
+            [disabled]="isLoadingContacts || isUpdatingContacts || fg.pristine || fg.invalid"
         >
             Actualizar
         </button>
