@@ -1,4 +1,10 @@
+const deviceID = "2f002e001847393035313137";
+
 export const environment = {
+    particle: {
+        accessToken: "6cb0a953824a29cbe8d06deebb8b18e362149c9a",
+        particleUrlBase: `https://api.particle.io/v1/devices/${deviceID}`,
+    },
     firebase: {
         apiKey: "AIzaSyBgcS0HXus6-SSZGG4NnTTwYAy8N0TaAXw",
         authDomain: "asthma-warriors-db.firebaseapp.com",
