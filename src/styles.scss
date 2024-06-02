@@ -3,43 +3,67 @@
 @use '@angular/material' as mat;
 
 @font-face {
-    font-family: 'Raleway';
-    src: url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+    font-family: 'Manrope';
+    src: url('assets/Manrope-VariableFont_wght.ttf');
 }
 
-$my-primary: mat.define-palette(mat.$indigo-palette, 500);
-$my-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
-$custom-typography: mat.define-typography-config(
-    $font-family: 'Raleway',
-);
+$my-primary: mat.define-palette(mat.$green-palette, A200);
+$my-accent: mat.define-palette(mat.$yellow-palette, A200, A100, A400);
+$my-warn: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$custom-typography: mat.define-typography-config($font-family: 'Manrope');
 
 * {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Manrope', sans-serif;
 }
 
-$my-theme: mat.define-light-theme((
- color: (
-   primary: $my-primary,
-   accent: $my-accent,
- ),
- typography: $custom-typography,
- density: 0,
+$my-theme: mat.define-dark-theme(
+    (color: (
+        primary: $my-primary,
+        accent: $my-accent,
+        warn: $my-warn,
+    ),
+    typography: $custom-typography,
+    density: 0,
 ));
 
 @include mat.core();
 @include mat.all-component-themes($my-theme);
 
-html, body { height: 100%; }
-body { margin: 0; }
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
 body,
 h1,
 h2,
 h3,
 h4,
 h5,
-h6
-{
+h6 {
     font-family: 'Raleway', sans-serif;
+}
+
+.flex {
+    display: flex;
+
+    &-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.row {
+    flex-direction: row;
+}
+
+.col {
+    flex-direction: column;
 }
 
 .sp {
@@ -69,4 +93,8 @@ h6
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     padding: 20px;
     color: #fff;
+}
+
+.toolbar-spacer {
+    flex: 1 1 auto;
 }
