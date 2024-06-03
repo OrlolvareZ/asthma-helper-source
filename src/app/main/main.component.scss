@@ -1,12 +1,19 @@
+$container-padding: 1rem;
+
 .container {
 
     --toolbar-height: var(--mat-toolbar-standard-height);
 
-    height: calc(100% - var(--toolbar-height) - 12px);
+    height: calc(100% - var(--toolbar-height) - 12px - #{$container-padding} * 2);
+    // Screen height - toolbar height - toolbar padding - container padding (x2)
+    width: calc(100% - #{$container-padding} * 2);
+    // Screen width - container padding (x2)
 
     @media (max-width: 599px) {
         --toolbar-height: var(--mat-toolbar-mobile-height);
     }
+
+    padding: #{$container-padding};
 }
 
 .center-container {
@@ -27,4 +34,10 @@
 ::ng-deep mat-progress-bar.dialog {
     padding-top: 10vh;
     padding-bottom: 10vh;
+}
+
+.outlined {
+    border: 1px solid var(--primary-color);
+    border-radius: 15px;
+    padding: 1rem;
 }

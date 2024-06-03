@@ -129,4 +129,9 @@ h6 {
 
 .hint {
     opacity: 0.5;
+    
+    &-small {
+        opacity: 0.5;
+        font-size: 0.5rem;
+    }
 }

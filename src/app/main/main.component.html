@@ -1,7 +1,9 @@
 <p>
     <mat-toolbar color="primary">
-        <span>INHLR Monitor</span>
-        <span class="toolbar-spacer"></span>
+        <span class="sp-right">
+            INHLR Monitor
+        </span>
+       <span class="toolbar-spacer"></span>
         <button mat-icon-button [matMenuTriggerFor]="menu">
             <mat-icon>menu</mat-icon>
         </button>
@@ -10,6 +12,11 @@
                 <mat-icon fontIcon="group"/>
                 <span>Gestionar contactos de confianza</span>
             </button>
+            <button mat-menu-item (click)="openSettingsDialog(settingsView)">
+                <mat-icon fontIcon="settings"/>
+                <span>Configuración</span>
+            </button>
+            
         </mat-menu>
     </mat-toolbar>
 </p>
@@ -34,6 +41,75 @@
     
     }
     @else {
+
+        <div class="outlined col sp-bottom">
+
+            <div class="row flex-center">
+                <button
+                    class="flex sp-right"
+                    mat-mini-fab
+                    (click)="updateShots(-5)"
+                    matBadge="5"
+                    [disabled]="inhalerShots! < 5 || isUpdatingShots"
+                >
+                    <mat-icon>remove</mat-icon>
+                </button>
+                <button
+                    class="flex sp-right"
+                    mat-mini-fab
+                    (click)="updateShots(-1)"
+                    matBadge="1"
+                    [disabled]="inhalerShots! <= 0 || isUpdatingShots"
+                >
+                    <mat-icon>remove</mat-icon>
+                </button>
+    
+                <button
+                    class="sp-right flex"
+                    style="height: auto;"
+                    mat-raised-button
+                    (click)="onlyUpdateShotsInParticle()"
+                    [disabled]="isUpdatingShots"
+                >
+                    <div class="center-container sp-top">
+                        <h4>
+                        {{ inhalerShots }}
+                        </h4>
+                        <p>
+                            disparos restantes
+                        </p>
+                        <p class="hint-small">
+                            Toca para sincronizar tu &nbsp;<span class="inhlr">INHLR</span>
+                        </p>
+                    </div>
+                </button>
+    
+                <button
+                    class="flex sp-right"
+                    mat-mini-fab
+                    (click)="updateShots(1)"
+                    matBadge="1"
+                    [disabled]="isUpdatingShots"
+                >
+                    <mat-icon>add</mat-icon>
+                </button>
+                <button
+                    class="flex"
+                    mat-mini-fab
+                    (click)="updateShots(5)"
+                    matBadge="5"
+                    [disabled]="isUpdatingShots"
+                >
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+
+
+            @if (isUpdatingShots) {
+                <mat-progress-bar class="appear flex sp-top" mode="indeterminate"/>
+            }
+
+        </div>
 
         <p>
             smoke: {{smokeValue}}
@@ -69,7 +145,7 @@
                 <p class="appear">
                     ¡No tienes contactos guardados aún! 😯
                 </p>
-                <p class="hint">
+                <p class="hint appear">
                     Agrega hasta 5 contactos de confianza para que puedan
                     ser notificados en caso de emergencia
                 </p>
@@ -140,6 +216,47 @@
             [disabled]="isLoadingContacts || isUpdatingContacts || fg.pristine || fg.invalid"
         >
             Actualizar
+        </button>
+    </div>
+
+</ng-template>
+
+<ng-template #settingsView>
+
+    <h1 mat-dialog-title>Configuración</h1>
+    
+    <mat-divider/>
+
+    <div mat-dialog-content>
+        <p>
+            Intervalo de actualización (ms)
+        </p>
+        <mat-slider
+            class="toolbar-spacer sp-right"
+            [min]="5000"
+            [max]="10000"
+            [step]="500"
+            [discrete]="true"
+            [showTickMarks]="true"
+            color="accent"
+        >
+            <input
+                style="width: 100%;"
+                matSliderThumb
+                [(ngModel)]="updateInterval" #slider
+                (change)="saveInterval(slider.value)"
+            >
+        </mat-slider>
+    </div>
+
+    <mat-divider/>
+
+    <div mat-dialog-actions>
+        <button
+            mat-button
+            mat-dialog-close
+        >
+            Volver
         </button>
     </div>
 

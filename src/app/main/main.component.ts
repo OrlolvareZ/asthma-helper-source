@@ -12,13 +12,16 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatSliderModule } from '@angular/material/slider';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { environment } from '../environment';
 import { DialogComponent } from '../dialog/dialog.component';
-import { firstValueFrom, lastValueFrom, timeout } from 'rxjs';
+import { BehaviorSubject, Subject, debounceTime, first, lastValueFrom, skip, tap, timeout } from 'rxjs';
+import { MailService } from '../services/mail.service';
 
 @Component({
     selector: 'app-main',
@@ -37,8 +40,9 @@ import { firstValueFrom, lastValueFrom, timeout } from 'rxjs';
         MatFormFieldModule,
         MatDividerModule,
         MatProgressBar,
+        MatBadgeModule,
+        MatSliderModule,
         // Angular
-        HttpClientModule,
         FormsModule,
         ReactiveFormsModule,
         // Firebase
@@ -51,6 +55,7 @@ import { firstValueFrom, lastValueFrom, timeout } from 'rxjs';
 export class MainComponent implements OnInit {
 
     // Data
+    inhalerShots: number | null = null;
     smokeValue: number | null = null;
     dustValue: number | null = null;
 
@@ -58,18 +63,42 @@ export class MainComponent implements OnInit {
     isSyncing = true;
 
     isLoadingContacts = false;
-    wasAbleToFetchContacts = false;
     isUpdatingContacts = false;
+    isUpdatingShots = false;
+
+    wasAbleToFetchContacts = false;
+
+    alertsAreApplicable = false;
+
+    private updateShotsSubject = new BehaviorSubject<
+    {
+        oldShots: number,
+        newShots: number,
+    }
+    >({
+        oldShots: -1,
+        newShots: -1,
+    });
 
     dialogRef: MatDialogRef<DialogComponent, any> | null = null;
-
+    
     fg: FormGroup;
     contactsFormArray: FormArray<any>;
-
+    
+    updateInterval: number;
+    intervalId: any = null;
+    
     // UI
     dialogSize = {
         width: '80%',
         height: 'auto',
+    };
+    messages = {
+        noInternetConnection: 'No tienes conexión a internet 😢\nIntentando conectar de vuelta',
+        noInternetConnButRetry: 'No tienes conexión a internet 😢\nIntentando conectar de vuelta',
+        noInhlrConnection: '¡Se perdió la conexión con tu INHLR! Por favor revisa que ambos dispositivos estén conectados a internet.',
+        unableSyncInhlr: 'Hubo un error al actualizar tu INHLR 😢',
+        unableSyncContactsDb: 'Hubo un error al guardar tus contactos 😢',
     };
 
     constructor(
@@ -78,7 +107,10 @@ export class MainComponent implements OnInit {
         private db: AngularFirestore,
         private dialog: MatDialog,
         private fb: FormBuilder,
+        private mail: MailService,
     ) {
+
+        this.updateInterval = parseInt(localStorage.getItem('updateInterval') ?? '5000');
 
         this.contactsFormArray = new FormArray([] as any[]);
     
@@ -86,14 +118,57 @@ export class MainComponent implements OnInit {
             contacts: this.contactsFormArray,
         });
 
+        this.updateShotsSubject
+        .pipe(
+            skip(2), // Skip initial value and the one after getting from the DB
+            tap(({ oldShots, newShots }) => this.inhalerShots = newShots),
+            debounceTime(1500)
+        )
+        .subscribe(
+            async values => {
+
+                this.isUpdatingShots = true;
+
+                const { oldShots, newShots } = values;
+
+                try {
+                    await this.updateShotsInDB(newShots);
+                }
+                catch (error) {
+                    this.snack.open(this.messages.noInternetConnection, 'Ok');
+                    this.isUpdatingShots = false;
+                    return;
+                };
+
+                try {
+
+                    await this.updateShotsInParticle(newShots);
+                    this.snack.open('Se actualizó el contador ✅', 'Ok', { duration: 2000 });
+
+                    this.isUpdatingShots = false;
+
+                }
+                catch (error) {
+                    this.snack.open(
+                        `${this.messages.unableSyncInhlr}\n${this.messages.noInhlrConnection}`,
+                        'Ok'
+                    );
+                    this.isUpdatingShots = false;
+                    return;
+                };
+            }
+        );
+
     }
 
-    ngOnInit(): void {
+    async ngOnInit() {
         
         this.getDashboardData();
-        setInterval(() => {
+        this.intervalId = setInterval(() => {
             this.getDashboardData();
-        }, 5000);
+        }, this.updateInterval);
+
+        this.getShotsFromDb();
 
     }
     
@@ -103,14 +178,11 @@ export class MainComponent implements OnInit {
             next: (data: any) => {
                 const parsedData = JSON.parse(data.result);
                 this.smokeValue = parsedData.smokeValue;
-                this.dustValue = parsedData.dustDensity;
+                this.dustValue = parsedData.pm05;
                 this.isSyncing = false;
             },
             error: (error: any) => {
-                this.snack.open(
-                    '¡Se perdió la conexión con tu INHLR! Por favor revisa que ambos dispositivos estén conectados a internet.',
-                    'Ok'
-                );
+                this.snack.open(this.messages.noInhlrConnection, 'Ok');
             }
         });
 
@@ -130,7 +202,7 @@ export class MainComponent implements OnInit {
 
     }
 
-    async getContacts() {
+    private async getContacts() {
 
         this.isLoadingContacts = true;
 
@@ -216,8 +288,7 @@ export class MainComponent implements OnInit {
 
             error: () => {
                 this.snack.open(
-                    `Hubo un error al actualizar tu INHLR 😢
-                    Por favor verifica que tu dispositivo y tu INHLR tengan conexión a internet e inténtalo de nuevo.`,
+                    `${this.messages.unableSyncInhlr}\n${this.messages.noInhlrConnection}`,
                     'Ok'
                 );
                 this.isUpdatingContacts = false;
@@ -236,8 +307,7 @@ export class MainComponent implements OnInit {
         }
         catch (error) {
             this.snack.open(
-                `Hubo un error al guardar la lista de contactos 😢
-                Por favor verifica que tu conexión a internet e inténtalo de nuevo.`,
+                `${this.messages.unableSyncContactsDb}\n${this.messages.noInhlrConnection}`,
                 'Ok'
             );
         };
@@ -250,26 +320,106 @@ export class MainComponent implements OnInit {
 
     }
 
+    getShotsFromDb() {
+
+        this.db.collection('shots').doc('count').valueChanges()
+            .pipe(first())
+            .subscribe({
+                next: async (data: any) => {
+
+                    this.inhalerShots = data.value;
+                    this.updateShotsSubject.next(
+                        {
+                            oldShots: data.value,
+                            newShots: data.value,
+                        }
+                    );
+                    // Always try to keep the particle updated on the shots
+                    await this.updateShotsInParticle(data.value);
+
+                },
+                error: (error: any) => {
+                    this.snack.open(this.messages.noInternetConnButRetry, 'Ok');
+                }
+            });
+
+    }
+
+    updateShots(numShots: number) {
+
+        const { oldShots, newShots } = this.updateShotsSubject.value;
+        this.updateShotsSubject.next(
+            {
+                oldShots: newShots,
+                newShots: newShots + numShots > 0 ? newShots + numShots : 0,
+            }
+        );
+    }
+
+    private async updateShotsInParticle(numShots: number) {
+        await lastValueFrom(this.requestParticle('setShots', numShots.toString()));
+    }
+
+    async onlyUpdateShotsInParticle() {
+
+        this.isUpdatingShots = true;
+        try {
+            await this.updateShotsInParticle(this.inhalerShots!);
+        }
+        catch (error) {
+            this.snack.open(
+                `${this.messages.unableSyncInhlr}\n${this.messages.noInhlrConnection}`,
+                'Ok'
+            );
+        }
+        finally {
+            this.isUpdatingShots = false
+        }
+
+    }
+    
+    private async updateShotsInDB(numShots: number) {
+        await this.db.collection('shots').doc('count').set({ value: numShots });
+    }
+
     
 
     requestParticle(endpoint: string, params: string = '') {
 
+        const url = `${environment.particle.particleUrlBase}/${endpoint}?access_token=${environment.particle.accessToken}`;
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+
         const request = params === '' ?
         this.http.get(
-            `${environment.particle.particleUrlBase}/${endpoint}?access_token=${environment.particle.accessToken}`,
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            }
+            url, { headers }
+
         )
         : this.http.post(
-            `${environment.particle.particleUrlBase}/${endpoint}?access_token=${environment.particle.accessToken}`,
-            `$params=${params}`,
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            }
+            url, `$params=${params}`, { headers }
         );
 
-        return request.pipe(timeout(3000));
+        return request.pipe(timeout(this.updateInterval - 500));
+
+    }
+
+    openSettingsDialog(settingsView: any) {
+        this.dialog.open(DialogComponent, {
+            data: settingsView,
+            ...this.dialogSize
+        });
+    }
+
+    saveInterval(value: string) {
+
+        localStorage.setItem('updateInterval', value);
+
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+
+        this.intervalId = setInterval(() => {
+            this.getDashboardData();
+        }, parseInt(value));
 
     }
 
