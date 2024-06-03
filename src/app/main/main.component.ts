@@ -68,7 +68,7 @@ export class MainComponent implements OnInit {
 
     wasAbleToFetchContacts = false;
 
-    alertsAreApplicable = false;
+    alertsAreApplicable = true;
 
     private updateShotsSubject = new BehaviorSubject<
     {
@@ -146,6 +146,8 @@ export class MainComponent implements OnInit {
                     this.snack.open('Se actualizó el contador ✅', 'Ok', { duration: 2000 });
 
                     this.isUpdatingShots = false;
+
+                    await this.handleAlerts();
 
                 }
                 catch (error) {
@@ -382,8 +384,45 @@ export class MainComponent implements OnInit {
         await this.db.collection('shots').doc('count').set({ value: numShots });
     }
 
-    
+    private async handleAlerts() {
 
+        if (this.inhalerShots! > 5) {
+            this.alertsAreApplicable = true;
+            return;
+        }
+        
+        let message: string | null = null;
+        let error: string | null = null;
+
+        if (this.inhalerShots === 0) {
+            error = await this.mail.sendMail(
+                '¡Recarga tu inhalador!',
+                `Las dosis de tu inhalador se han agotado.`,
+            );
+            message = '¡Recarga tu inhalador pronto!';
+            this.alertsAreApplicable = false;
+        }
+        else if (!this.alertsAreApplicable) {
+            return;
+        }
+        else if (this.inhalerShots! <= 5) {
+            error = await this.mail.sendMail(
+                '¡Tu inhalador está por agotarse!',
+                `Te quedan ${this.inhalerShots!} dosis en tu inhalador.`,
+            );
+            message = '¡Tu inhalador está por agotarse!';
+            this.alertsAreApplicable = false;
+        }
+
+        if (error) {
+            this.snack.open(error, 'Ok');
+        }
+        else if (message) {
+            this.snack.open(message, 'Ok');
+        }
+
+    }
+    
     requestParticle(endpoint: string, params: string = '') {
 
         const url = `${environment.particle.particleUrlBase}/${endpoint}?access_token=${environment.particle.accessToken}`;
