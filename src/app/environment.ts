@@ -13,5 +13,12 @@ export const environment = {
         messagingSenderId: "240703391266",
         appId: "1:240703391266:web:932d0a535f1394a9b0ec7b",
         measurementId: "G-8KWDY6E32R"
+    },
+    brevo: {
+        sender: {
+            name: "INHAlert Service",
+            email: "orlolvarez@gmail.com"
+        },
+        apiKey: "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",
     }
 }

@@ -42,82 +42,120 @@
     }
     @else {
 
-        <div class="outlined col sp-bottom">
+        <div class="appear">
 
-            <div class="row flex-center">
-                <button
-                    class="flex sp-right"
-                    mat-mini-fab
-                    (click)="updateShots(-5)"
-                    matBadge="5"
-                    [disabled]="inhalerShots! < 5 || isUpdatingShots"
-                >
-                    <mat-icon>remove</mat-icon>
-                </button>
-                <button
-                    class="flex sp-right"
-                    mat-mini-fab
-                    (click)="updateShots(-1)"
-                    matBadge="1"
-                    [disabled]="inhalerShots! <= 0 || isUpdatingShots"
-                >
-                    <mat-icon>remove</mat-icon>
-                </button>
-    
-                <button
-                    class="sp-right flex"
-                    style="height: auto;"
-                    mat-raised-button
-                    (click)="onlyUpdateShotsInParticle()"
-                    [disabled]="isUpdatingShots"
-                >
-                    <div class="center-container sp-top">
-                        <h4>
-                        {{ inhalerShots }}
-                        </h4>
-                        <p>
-                            disparos restantes
-                        </p>
-                        <p class="hint-small">
-                            Toca para sincronizar tu &nbsp;<span class="inhlr">INHLR</span>
-                        </p>
+            <h2>
+                Información sobre tu entorno
+            </h2>
+            <div class="outlined sp-bottom">
+
+                <div class="col sp-bottom flex-center">
+                    <ngx-gauge
+                        class="main flex"
+                        [size]="200"
+                        [type]="'arch'" 
+                        [value]="smokeExposure()" 
+                        [label]="'Exposición a gases/humo'"
+                        [append]="'%'"
+                        [cap]="'round'"
+                        [min]="0"
+                        [max]="100"
+                        [thick]="20"
+                        [thresholds]="gaugeThresholds"
+                    />
+                </div>
+                <div class="flex sp-bottom">
+                    <mat-divider style="width: 100%;"/>
+                </div>
+                <div class="row flex-center">
+                    <div class="flex sp-right">
+                        Concentración de polvo:
                     </div>
-                </button>
+                    <mat-icon
+                        class="flex sp-right"
+                        [style.color]="particleDensityInfo.color"
+                        fontIcon="circle"
+                    />
+                    <div>
+                        {{ particleDensityInfo.label }}
+                    </div>
+                </div>
+
+            </div>
+            
+            <h2>
+                Tu inhalador
+            </h2>
+            <div class="outlined col sp-bottom">
     
-                <button
-                    class="flex sp-right"
-                    mat-mini-fab
-                    (click)="updateShots(1)"
-                    matBadge="1"
-                    [disabled]="isUpdatingShots"
-                >
-                    <mat-icon>add</mat-icon>
-                </button>
-                <button
-                    class="flex"
-                    mat-mini-fab
-                    (click)="updateShots(5)"
-                    matBadge="5"
-                    [disabled]="isUpdatingShots"
-                >
-                    <mat-icon>add</mat-icon>
-                </button>
+                <div class="row flex-center">
+                    <button
+                        class="flex sp-right"
+                        mat-mini-fab
+                        (click)="updateShots(-5)"
+                        matBadge="5"
+                        [disabled]="inhalerShots! < 5 || isUpdatingShots"
+                    >
+                        <mat-icon>remove</mat-icon>
+                    </button>
+                    <button
+                        class="flex sp-right"
+                        mat-mini-fab
+                        (click)="updateShots(-1)"
+                        matBadge="1"
+                        [disabled]="inhalerShots! <= 0 || isUpdatingShots"
+                    >
+                        <mat-icon>remove</mat-icon>
+                    </button>
+        
+                    <button
+                        class="sp-right flex"
+                        style="height: auto;"
+                        mat-raised-button
+                        (click)="onlyUpdateShotsInParticle()"
+                        [disabled]="isUpdatingShots"
+                    >
+                        <div class="center-container sp-top">
+                            <h4>
+                            {{ inhalerShots }}
+                            </h4>
+                            <p>
+                                disparos restantes
+                            </p>
+                            <p class="hint-small">
+                                Toca para sincronizar tu &nbsp;<span class="inhlr">INHLR</span>
+                            </p>
+                        </div>
+                    </button>
+        
+                    <button
+                        class="flex sp-right"
+                        mat-mini-fab
+                        (click)="updateShots(1)"
+                        matBadge="1"
+                        [disabled]="isUpdatingShots"
+                    >
+                        <mat-icon>add</mat-icon>
+                    </button>
+                    <button
+                        class="flex"
+                        mat-mini-fab
+                        (click)="updateShots(5)"
+                        matBadge="5"
+                        [disabled]="isUpdatingShots"
+                    >
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
+    
+    
+                @if (isUpdatingShots) {
+                    <mat-progress-bar class="appear flex sp-top" mode="indeterminate"/>
+                }
+    
             </div>
 
-
-            @if (isUpdatingShots) {
-                <mat-progress-bar class="appear flex sp-top" mode="indeterminate"/>
-            }
-
         </div>
-
-        <p>
-            smoke: {{smokeValue}}
-        </p>
-        <p>
-            dust: {{dustValue}}
-        </p>
-
     }
 
 </div>

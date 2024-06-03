@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -22,6 +22,7 @@ import { environment } from '../environment';
 import { DialogComponent } from '../dialog/dialog.component';
 import { BehaviorSubject, Subject, debounceTime, first, lastValueFrom, skip, tap, timeout } from 'rxjs';
 import { MailService } from '../services/mail.service';
+import { NgxGaugeModule } from 'ngx-gauge';
 
 @Component({
     selector: 'app-main',
@@ -48,6 +49,8 @@ import { MailService } from '../services/mail.service';
         // Firebase
         AngularFireModule,
         AngularFirestoreModule,
+        // Additional
+        NgxGaugeModule,
     ],
     templateUrl: './main.component.html',
     styleUrl: './main.component.scss'
@@ -56,7 +59,8 @@ export class MainComponent implements OnInit {
 
     // Data
     inhalerShots: number | null = null;
-    smokeValue: number | null = null;
+    smokeValue = signal(0);
+    smokeExposure = computed(() => Math.ceil(this.smokeValue() * 100 / 4095));
     dustValue: number | null = null;
 
     // App state
@@ -100,6 +104,11 @@ export class MainComponent implements OnInit {
         unableSyncInhlr: 'Hubo un error al actualizar tu INHLR 😢',
         unableSyncContactsDb: 'Hubo un error al guardar tus contactos 😢',
     };
+    gaugeThresholds: any;
+    particleDensityInfo = {
+        color: '',
+        label: '',
+    };
 
     constructor(
         private http: HttpClient,
@@ -113,6 +122,14 @@ export class MainComponent implements OnInit {
         this.updateInterval = parseInt(localStorage.getItem('updateInterval') ?? '5000');
 
         this.contactsFormArray = new FormArray([] as any[]);
+
+        const rootStyles = getComputedStyle(document.documentElement);
+
+        this.gaugeThresholds = {
+            '0': {color: rootStyles.getPropertyValue('--primary-color')},
+            '35': {color: rootStyles.getPropertyValue('--accent-color')},
+            '50': {color: rootStyles.getPropertyValue('--warn-color')},
+        }
     
         this.fg = this.fb.group({
             contacts: this.contactsFormArray,
@@ -179,8 +196,18 @@ export class MainComponent implements OnInit {
         this.requestParticle('allData').subscribe({
             next: (data: any) => {
                 const parsedData = JSON.parse(data.result);
-                this.smokeValue = parsedData.smokeValue;
+                this.smokeValue.set(parsedData.smokeValue);
                 this.dustValue = parsedData.pm05;
+                this.particleDensityInfo.color = `var(--${
+                    this.dustValue! < 151 ? 'primary'
+                    : this.dustValue! < 1051 ? 'accent'
+                    : 'warn'
+                }-color)`;
+                this.particleDensityInfo.label = this.dustValue! < 151 ?
+                    'Baja'
+                    : this.dustValue! < 1051 ?
+                    'Regular'
+                    : 'Preocupante';
                 this.isSyncing = false;
             },
             error: (error: any) => {
