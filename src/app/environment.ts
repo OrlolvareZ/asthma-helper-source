@@ -19,6 +19,5 @@ export const environment = {
             name: "INHAlert Service",
             email: "orlolvarez@gmail.com"
         },
-        apiKey: "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",
     }
 }

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom, of, skip } from 'rxjs';
 import { environment } from '../environment';
 import { HttpClient } from '@angular/common/http';
 
@@ -11,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 export class MailService {
 
     http: HttpClient;
+    apiKey: string | null = null;
 
     constructor(
         private db: AngularFirestore,
@@ -49,10 +50,12 @@ export class MailService {
             htmlContent: mailBody
         };
 
+        const apiKey = await this.getApiKey();
+
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'api-key': environment.brevo.apiKey,
+            'api-key': apiKey!,
         }
 
         try {
@@ -128,6 +131,19 @@ export class MailService {
             </body>
         </html>
         `
+
+    }
+
+    private async getApiKey() {
+
+        if (this.apiKey) return this.apiKey;
+
+        const key = await firstValueFrom(
+            this.db.collection('keys').get()
+        );
+
+        this.apiKey = (key.docs[0].data() as any).value;
+        return this.apiKey;
 
     }
 
