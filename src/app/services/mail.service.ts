@@ -33,7 +33,10 @@ export class MailService {
         const mailBody = this.buildMailBody(...messages);
 
         const mail = {
-            ...environment.brevo.sender,
+            sender: {
+                ...environment.brevo.sender,
+
+            },
             to: [
                 ...recipients.map((contact: string) => {
                     return {
@@ -55,7 +58,7 @@ export class MailService {
         try {
             await lastValueFrom(
                 this.http.post(
-                    'https://api.brevo.co/v3/smtp/send',
+                    'https://api.brevo.com/v3/smtp/email',
                     mail,
                     { headers }
                 )
