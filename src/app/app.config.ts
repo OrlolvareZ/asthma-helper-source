@@ -7,9 +7,11 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { environment } from './environment';
 import { FIREBASE_OPTIONS } from '@angular/fire/compat';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
     providers: [
+        provideHttpClient(withFetch()),
         provideRouter(routes),
         provideAnimations(),
         provideAnimationsAsync(),
